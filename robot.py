@@ -16,33 +16,36 @@ commands = [['motors','ff'],
 robot = PyCmdMessenger.CmdMessenger(arduino, commands)
 
 # step config
-ms_mode = 32
-stepper_deg = 1.8
-steps_per_rev = (360 * 32) / stepper_deg
-steps_per_degree = ms_mode / stepper_deg
+ms_mode = 32 # microstepping mode
+stepper_deg = 1.8 # degrees per step native to stepper motor
+steps_per_rev = (360 * 32) / stepper_deg # steps per full 360' revolution
+steps_per_degree = ms_mode / stepper_deg # steps per 1' revolution
 
-segment_distance = 1
+segment_distance = 1 # maximum distance of a move
 
 # link lengths
-la = 58
-lb = 100
-lc = 60
+la = 58 # forearms in mm
+lb = 100 # aftarms in mm
+lc = 60 # space between main pivots
 
 # default angles
 curr_a1 = 90
 curr_a4 = 90
 
+# destination angles
 dest_a1 = 0
 dest_a4 = 0
 
+# current x / y
 curr_x = 0
 curr_y = 0
 
+# destination x / y
 dest_x = 0
 dest_y = 0
 
-
 def get_angles(x, y):
+	''' forward kinematics '''
 	E1 = float(-2 * la * x)
 	F1 = float(-2 * la * y)
 	G1 = float(la * la - lb * lb + x * x + y * y)
@@ -64,6 +67,7 @@ def get_angles(x, y):
 
 
 def get_coords(a1, a4):
+	''' inverse kinematics '''
 	a1 = math.radians(a1)
 	a4 = math.radians(a4)
 
@@ -80,6 +84,7 @@ def get_coords(a1, a4):
 
 
 def get_segment_coords(dest_x, dest_y):
+	''' find x / y at point on line '''
 	D = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
 	proposed_x = curr_x - ((segment_distance * (curr_x - dest_x)) / D)
 	proposed_y = curr_y - ((segment_distance * (curr_y - dest_y)) / D)
@@ -88,6 +93,7 @@ def get_segment_coords(dest_x, dest_y):
 
 
 def make_move(dest_x, dest_y):
+	''' send steps to arudino controller '''
 	global curr_x, curr_y, curr_a1, curr_a4, moving
 
 	(dest_a1, dest_a4) = get_angles(dest_x, dest_y)
@@ -127,6 +133,7 @@ def main():
 	# we know our initial angles so lets get coordinates...
 	(curr_x, curr_y) = get_coords(curr_a1, curr_a4)
 
+	# power motors
 	robot.send('energize')
 	msg = bool(robot.receive())
 
@@ -142,9 +149,11 @@ def main():
 
 				dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
 
+				# break path to dest_x / dest_y into smaller segments for more linear paths
 				if dist > segment_distance:
+					# long move... break into segments
 					while dist >= segment_distance:
-
+						# get the next x / y based on segment_distance
 						(proposed_x, proposed_y) = get_segment_coords(dest_x, dest_y)
 
 						make_move(proposed_x, proposed_y)
@@ -152,10 +161,13 @@ def main():
 						curr_x = proposed_x
 						curr_y = proposed_y
 
+						# how far from destination now?
 						dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
 				else:
+					# small move - just send it...
 					make_move(dest_x, dest_y)
 
+	# kill motors...
 	robot.send('deenergize')
 	msg = bool(robot.receive())
 
