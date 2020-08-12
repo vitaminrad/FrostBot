@@ -21,6 +21,7 @@ stepper_deg = 1.8 # degrees per step native to stepper motor
 steps_per_rev = (360 * 32) / stepper_deg # steps per full 360' revolution
 steps_per_degree = ms_mode / stepper_deg # steps per 1' revolution
 
+interpolate = True
 segment_distance = 1 # maximum distance of a move
 
 # link lengths
@@ -130,14 +131,17 @@ def make_move(dest_x, dest_y):
 def main():
 	global curr_x, curr_y, curr_a1, curr_a4
 
+	num_points = 0 # for informative purposes
+
 	# we know our initial angles so lets get coordinates...
 	(curr_x, curr_y) = get_coords(curr_a1, curr_a4)
+	(home_x, home_y) = (curr_x, curr_y)
 
 	# power motors
 	robot.send('energize')
 	msg = bool(robot.receive())
 
-	with open('test.gcode') as gcode:
+	with open('circle.gcode') as gcode:
 		for line in gcode:
 			line = line.strip()
 			coord_x = re.findall(r'X\d+.\d+', line)
@@ -147,29 +151,40 @@ def main():
 				dest_x = float(coord_x[0][1:])
 				dest_y = float(coord_y[0][1:])
 
-				dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
+				if interpolate:
+					dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
 
-				# break path to dest_x / dest_y into smaller segments for more linear paths
-				if dist > segment_distance:
-					# long move... break into segments
-					while dist >= segment_distance:
-						# get the next x / y based on segment_distance
-						(proposed_x, proposed_y) = get_segment_coords(dest_x, dest_y)
+					# break path to dest_x / dest_y into smaller segments for more linear paths
+					if dist > segment_distance:
+						# long move... break into segments
+						while dist >= segment_distance:
+							# get the next x / y based on segment_distance
+							(proposed_x, proposed_y) = get_segment_coords(dest_x, dest_y)
 
-						make_move(proposed_x, proposed_y)
+							make_move(proposed_x, proposed_y)
+							num_points += 1
 
-						curr_x = proposed_x
-						curr_y = proposed_y
+							curr_x = proposed_x
+							curr_y = proposed_y
 
-						# how far from destination now?
-						dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
+							# how far from destination now?
+							dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
+					else:
+						# small move - just send it...
+						make_move(dest_x, dest_y)
+						num_points += 1
 				else:
-					# small move - just send it...
 					make_move(dest_x, dest_y)
+					num_points += 1
+
+
+	make_move(home_x, home_y)
 
 	# kill motors...
 	robot.send('deenergize')
 	msg = bool(robot.receive())
+
+	print('I made %d points, Daddy' % num_points)
 
 if __name__ == '__main__':
 	main()

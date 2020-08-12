@@ -54,9 +54,6 @@ void move_motors(void) {
   } else
     motor_dir_2 = true;
 
-//  step(motor_dir_1, X_DIR, X_STP, motor_steps_1);
-//  step(motor_dir_2, Y_DIR, Y_STP, motor_steps_2);
-
   motor_steps[0] = motor_steps_1;
   motor_steps[1] = motor_steps_2;
 
@@ -94,16 +91,6 @@ void do_energize(void) {
 void do_deenergize(void) {
   digitalWrite(EN, HIGH);
   cmdMessenger.sendCmd(energized, "False");
-}
-
-void step(boolean dir, byte dirPin, byte stepperPin, int steps) {
-  digitalWrite (dirPin, dir);
-  for (int i = 0; i < steps; i++) {
-    digitalWrite(stepperPin, HIGH);
-    delayMicroseconds(STEP_DELAY_1);
-    digitalWrite(stepperPin, LOW);
-    delayMicroseconds(STEP_DELAY_2);
-  }
 }
 
 void setup() {
