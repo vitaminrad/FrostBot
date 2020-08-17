@@ -9,9 +9,9 @@ def main(argv):
 
 	output_filename = 'circle.gcode'
 	x0 = 25
-	y0 = 100
+	y0 = 135
 	points = 48
-	radius = 34
+	radius = 50
 
 	try:
 		opts, args = getopt.getopt(argv, "ho:p:r:x:y:", ["output_file=", "points=", "radius=", 'x=', 'y='])
@@ -36,6 +36,8 @@ def main(argv):
 		elif opt in ("-y", "--y"):
 			y0 = float(arg)
 			print('Setting y: %f' % y0)
+
+	print (x0, y0, radius)
 
 
 	with open(output_filename, 'w') as output_file:

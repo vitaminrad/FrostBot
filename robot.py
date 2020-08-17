@@ -25,8 +25,8 @@ interpolate = True
 segment_distance = 1 # maximum distance of a move
 
 # link lengths
-la = 58 # forearms in mm
-lb = 100 # aftarms in mm
+la = 80 # forearms in mm
+lb = 120 # aftarms in mm
 lc = 60 # space between main pivots
 
 # default angles
@@ -99,6 +99,8 @@ def make_move(dest_x, dest_y):
 
 	(dest_a1, dest_a4) = get_angles(dest_x, dest_y)
 
+	print('x: %f y: %f a0: %f a4: %f' % (dest_x, dest_y, dest_a1, dest_a4))
+
 	if dest_a1 > curr_a1:
 		delta_a1 = dest_a1 - curr_a1
 	else:
@@ -116,8 +118,8 @@ def make_move(dest_x, dest_y):
 	msg1 = robot.receive()
 	msg2 = robot.receive()
 
-	print(msg1)
-	print(msg2)
+	# print(msg1)
+	# print(msg2)
 
 	curr_a1 = dest_a1
 	curr_a4 = dest_a4
@@ -143,13 +145,28 @@ def main():
 
 	with open('circle.gcode') as gcode:
 		for line in gcode:
+
+			# coord = re.findall(r'[XY]-\d.\d\d\d', line)
+			# if coord:
+			# 	print("{} - {}".format(coord[0], coord[1]))
+
+			# 	coord_x = coord[0]
+			# 	coord_y = coord[1]
+
 			line = line.strip()
-			coord_x = re.findall(r'X\d+.\d+', line)
-			coord_y = re.findall(r'Y\d+.\d+', line)
+
+			coord = re.findall(r'[XY].?\d+.\d+', line)
+
+			# coord_x = re.findall(r'X\d+.\d+', line)
+			# coord_y = re.findall(r'Y\d+.\d+', line)
 			
-			if coord_x and coord_y:
-				dest_x = float(coord_x[0][1:])
-				dest_y = float(coord_y[0][1:])
+			# if coord_x and coord_y:
+			if len(coord) == 2:
+				dest_x = float(coord[0][1:])
+				dest_y = float(coord[1][1:])
+
+				# print(dest_x, dest_y)
+				# print(coord_x, coord_y)
 
 				if interpolate:
 					dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
@@ -184,7 +201,7 @@ def main():
 	robot.send('deenergize')
 	msg = bool(robot.receive())
 
-	print('I made %d points, Daddy' % num_points)
+	print('I made %d points, Bub' % num_points)
 
 if __name__ == '__main__':
 	main()
