@@ -3,14 +3,16 @@ import PyCmdMessenger
 import math
 import time
 
-arduino = PyCmdMessenger.ArduinoBoard('COM3', baud_rate=115200)
+arduino = PyCmdMessenger.ArduinoBoard('COM15', baud_rate=115200)
 
 commands = [['motors','ff'],
 			['energize',''],
 			['deenergize',''],
+			['home_axis',''],
 			['motor_value_1','f'],
 			['motor_value_2','f'],
-			['energized','s']]
+			['energized','s'],
+			['homed','s']]
 
 # Initialize the messenger
 robot = PyCmdMessenger.CmdMessenger(arduino, commands)
@@ -118,9 +120,6 @@ def make_move(dest_x, dest_y):
 	msg1 = robot.receive()
 	msg2 = robot.receive()
 
-	# print(msg1)
-	# print(msg2)
-
 	curr_a1 = dest_a1
 	curr_a4 = dest_a4
 
@@ -141,32 +140,24 @@ def main():
 
 	# power motors
 	robot.send('energize')
-	msg = bool(robot.receive())
+	msg = robot.receive()
+	print(msg)
+
+	robot.send('home_axis')
+	msg = robot.receive()
+	print(msg)
+
 
 	with open('circle.gcode') as gcode:
 		for line in gcode:
 
-			# coord = re.findall(r'[XY]-\d.\d\d\d', line)
-			# if coord:
-			# 	print("{} - {}".format(coord[0], coord[1]))
-
-			# 	coord_x = coord[0]
-			# 	coord_y = coord[1]
-
 			line = line.strip()
-
 			coord = re.findall(r'[XY].?\d+.\d+', line)
 
-			# coord_x = re.findall(r'X\d+.\d+', line)
-			# coord_y = re.findall(r'Y\d+.\d+', line)
-			
-			# if coord_x and coord_y:
 			if len(coord) == 2:
 				dest_x = float(coord[0][1:])
 				dest_y = float(coord[1][1:])
 
-				# print(dest_x, dest_y)
-				# print(coord_x, coord_y)
 
 				if interpolate:
 					dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
