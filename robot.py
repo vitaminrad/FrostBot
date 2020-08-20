@@ -5,14 +5,14 @@ import time
 
 arduino = PyCmdMessenger.ArduinoBoard('COM3', baud_rate=115200)
 
-commands = [['motors',       'ff'],
-			['energize',       ''],
-			['deenergize',     ''],
-			['home_axis',      ''],
+commands = [['motors', 'ff'],
+			['energize', ''],
+			['deenergize', ''],
+			['home_axis', ''],
 			['motor_value_1', 'f'],
 			['motor_value_2', 'f'],
-			['energized',     's'],
-			['homed',         's']]
+			['energized', 's'],
+			['homed', 's']]
 
 # Initialize the messenger
 robot = PyCmdMessenger.CmdMessenger(arduino, commands)
@@ -100,8 +100,6 @@ def make_move(dest_x, dest_y):
 	global curr_x, curr_y, curr_a1, curr_a4, moving
 
 	(dest_a1, dest_a4) = get_angles(dest_x, dest_y)
-
-	#print('x: %f y: %f a0: %f a4: %f' % (dest_x, dest_y, dest_a1, dest_a4))
 
 	if dest_a1 > curr_a1:
 		delta_a1 = dest_a1 - curr_a1

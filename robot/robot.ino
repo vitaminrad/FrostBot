@@ -105,12 +105,25 @@ void do_home() {
 	bool y_homed = false;
 
 	while (is_homed == false) {
+
 		if (digitalRead(ENDSTOP_1) == 0) {
 			x_homed = true;
+		} else {
+			digitalWrite(X_STP, HIGH);
+			delayMicroseconds(STEP_DELAY_1);
+			digitalWrite(X_STP, LOW);
+			delayMicroseconds(STEP_DELAY_2);
 		}
+
 		if (digitalRead(ENDSTOP_2) == 0) {
 			y_homed = true;
+		} else {
+			digitalWrite(X_STP, HIGH);
+			delayMicroseconds(STEP_DELAY_1);
+			digitalWrite(X_STP, LOW);
+			delayMicroseconds(STEP_DELAY_2);
 		}
+
 		if (x_homed && y_homed) {
 			is_homed = true;
 		}
