@@ -24,11 +24,11 @@ enum {
 	motors,
 	energize,
 	deenergize,
-  home_axis,
+	home_axis,
 	motor_value_1,
 	motor_value_2,
 	energized,
-  homed
+	homed
 };
 
 void attach_callbacks(void) {
@@ -100,27 +100,25 @@ void do_deenergize(void) {
 }
 
 void do_home() {
-  bool is_homed = false;
-  bool x_homed = false;
-  bool y_homed = false;
+	bool is_homed = false;
+	bool x_homed = false;
+	bool y_homed = false;
 
-  do {
-    if (digitalRead(ENDSTOP_1) == 0) {
-      x_homed = true;
-    }
+	while (is_homed == false) {
+		if (digitalRead(ENDSTOP_1) == 0) {
+			x_homed = true;
+		}
+		if (digitalRead(ENDSTOP_2) == 0) {
+			y_homed = true;
+		}
+		if (x_homed && y_homed) {
+			is_homed = true;
+		}
 
-    if (digitalRead(ENDSTOP_2) == 0) {
-      y_homed = true;
-    }
-    
-    if (x_homed && y_homed) {
-      is_homed = true;
-    }
-    
-    delayMicroseconds(500);
-	} while (is_homed == false);
- 
-  cmdMessenger.sendCmd(homed, is_homed);
+		delayMicroseconds(500);
+	}
+
+	cmdMessenger.sendCmd(homed, is_homed);
 }
 
 void setup() {
