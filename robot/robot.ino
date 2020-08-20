@@ -1,25 +1,5 @@
 #include "CmdMessenger.h"
 
-CmdMessenger cmdMessenger = CmdMessenger(Serial, ',', ';', '/');
-
-enum {
-	motors,
-	energize,
-	deenergize,
-  home_axis,
-	motor_value_1,
-	motor_value_2,
-	energized,
-	homed
-};
-
-void attach_callbacks(void) {
-	cmdMessenger.attach(motors, move_motors);
-	cmdMessenger.attach(energize, do_energize);
-	cmdMessenger.attach(deenergize, do_deenergize);
-	cmdMessenger.attach(home_axis, do_home);
-}
-
 # define EN 8 // stepper motor enable, active low
 # define X_DIR 5 // X -axis stepper motor direction control
 # define Y_DIR 6 // Y -axis stepper motor direction control
@@ -38,7 +18,27 @@ float value1, value2;
 float motor_steps_1, motor_steps_2;
 int motor_steps[2] = {0, 0};
 
-void move_motors(void) {
+CmdMessenger cmdMessenger = CmdMessenger(Serial, ',', ';', '/');
+
+enum {
+	motors,
+	energize,
+	deenergize,
+  home_axis,
+	motor_value_1,
+	motor_value_2,
+	energized,
+  homed
+};
+
+void attach_callbacks(void) {
+	cmdMessenger.attach(motors, do_move_motors);
+	cmdMessenger.attach(energize, do_energize);
+	cmdMessenger.attach(deenergize, do_deenergize);
+	cmdMessenger.attach(home_axis, do_home);
+}
+
+void do_move_motors(void) {
 	value1 = cmdMessenger.readBinArg<float>();
 	value2 = cmdMessenger.readBinArg<float>();
 
@@ -99,22 +99,28 @@ void do_deenergize(void) {
 	cmdMessenger.sendCmd(energized, "False");
 }
 
-void do_home(void) {
+void do_home() {
+  bool is_homed = false;
+  bool x_homed = false;
+  bool y_homed = false;
 
-  bool homed = false;
+  do {
+    if (digitalRead(ENDSTOP_1) == 0) {
+      x_homed = true;
+    }
 
-  while (homed == false) {
-    int endstop_1_state = digitalRead(ENDSTOP_1);
-    int endstop_2_state = digitalRead(ENDSTOP_2);
-    
-    if (endstop_1_state == 0 && endstop_2_state == 0) {
-      homed = true;
+    if (digitalRead(ENDSTOP_2) == 0) {
+      y_homed = true;
     }
     
-    delayMicroseconds(1000);
-	}
+    if (x_homed && y_homed) {
+      is_homed = true;
+    }
+    
+    delayMicroseconds(500);
+	} while (is_homed == false);
  
-	cmdMessenger.sendCmd(homed, "True");
+  cmdMessenger.sendCmd(homed, is_homed);
 }
 
 void setup() {

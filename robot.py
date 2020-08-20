@@ -3,16 +3,16 @@ import PyCmdMessenger
 import math
 import time
 
-arduino = PyCmdMessenger.ArduinoBoard('COM15', baud_rate=115200)
+arduino = PyCmdMessenger.ArduinoBoard('COM3', baud_rate=115200)
 
-commands = [['motors','ff'],
-			['energize',''],
-			['deenergize',''],
-			['home_axis',''],
-			['motor_value_1','f'],
-			['motor_value_2','f'],
-			['energized','s'],
-			['homed','s']]
+commands = [['motors',       'ff'],
+			['energize',       ''],
+			['deenergize',     ''],
+			['home_axis',      ''],
+			['motor_value_1', 'f'],
+			['motor_value_2', 'f'],
+			['energized',     's'],
+			['homed',         's']]
 
 # Initialize the messenger
 robot = PyCmdMessenger.CmdMessenger(arduino, commands)
@@ -101,7 +101,7 @@ def make_move(dest_x, dest_y):
 
 	(dest_a1, dest_a4) = get_angles(dest_x, dest_y)
 
-	print('x: %f y: %f a0: %f a4: %f' % (dest_x, dest_y, dest_a1, dest_a4))
+	#print('x: %f y: %f a0: %f a4: %f' % (dest_x, dest_y, dest_a1, dest_a4))
 
 	if dest_a1 > curr_a1:
 		delta_a1 = dest_a1 - curr_a1
@@ -116,9 +116,17 @@ def make_move(dest_x, dest_y):
 	steps_motor_1 = (delta_a1 * steps_per_degree)
 	steps_motor_2 = (delta_a4 * steps_per_degree)
 
+	msg1 = None
+	msg2 = None
+
 	robot.send('motors', steps_motor_1, steps_motor_2)
 	msg1 = robot.receive()
 	msg2 = robot.receive()
+
+	while msg1 == None and msg2 == None:
+		print('waiting for move...')
+		msg1 = robot.receive()
+		msg2 = robot.receive()
 
 	curr_a1 = dest_a1
 	curr_a4 = dest_a4
@@ -132,6 +140,8 @@ def make_move(dest_x, dest_y):
 def main():
 	global curr_x, curr_y, curr_a1, curr_a4
 
+	msg = None
+
 	num_points = 0 # for informative purposes
 
 	# we know our initial angles so lets get coordinates...
@@ -141,12 +151,13 @@ def main():
 	# power motors
 	robot.send('energize')
 	msg = robot.receive()
-	print(msg)
 
+	msg = None
 	robot.send('home_axis')
 	msg = robot.receive()
-	print(msg)
 
+	while (msg == None):
+		msg = robot.receive()
 
 	with open('circle.gcode') as gcode:
 		for line in gcode:
@@ -157,7 +168,6 @@ def main():
 			if len(coord) == 2:
 				dest_x = float(coord[0][1:])
 				dest_y = float(coord[1][1:])
-
 
 				if interpolate:
 					dist = math.sqrt((curr_x - dest_x) * (curr_x - dest_x) + (curr_y - dest_y) * (curr_y - dest_y))
@@ -190,7 +200,7 @@ def main():
 
 	# kill motors...
 	robot.send('deenergize')
-	msg = bool(robot.receive())
+	msg = robot.receive()
 
 	print('I made %d points, Bub' % num_points)
 
