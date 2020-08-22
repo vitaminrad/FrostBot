@@ -8,7 +8,7 @@ arduino = PyCmdMessenger.ArduinoBoard('COM3', baud_rate=115200)
 commands = [['motors', 'ff'],
 			['energize', ''],
 			['deenergize', ''],
-			['home_axis', ''],
+			['home_axis', 'ff'],
 			['motor_value_1', 'f'],
 			['motor_value_2', 'f'],
 			['energized', 's'],
@@ -31,7 +31,11 @@ la = 80 # forearms in mm
 lb = 120 # aftarms in mm
 lc = 60 # space between main pivots
 
-# default angles
+# offset steps after homing
+home_offset_a1 = steps_per_degree * 80
+home_offset_a2 = steps_per_degree * 76
+
+# default angles after homing
 curr_a1 = 90
 curr_a4 = 90
 
@@ -142,20 +146,21 @@ def main():
 
 	num_points = 0 # for informative purposes
 
-	# we know our initial angles so lets get coordinates...
-	(curr_x, curr_y) = get_coords(curr_a1, curr_a4)
-	(home_x, home_y) = (curr_x, curr_y)
-
 	# power motors
 	robot.send('energize')
 	msg = robot.receive()
 
+
 	msg = None
-	robot.send('home_axis')
+	robot.send('home_axis', home_offset_a1, home_offset_a2)
 	msg = robot.receive()
 
 	while (msg == None):
 		msg = robot.receive()
+
+	# we know our initial angles so lets get coordinates...
+	(curr_x, curr_y) = get_coords(curr_a1, curr_a4)
+	(home_x, home_y) = (curr_x, curr_y)
 
 	with open('circle.gcode') as gcode:
 		for line in gcode:
