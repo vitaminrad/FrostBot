@@ -33,7 +33,7 @@ lc = 60 # space between main pivots
 
 # offset steps after homing
 home_offset_a1 = steps_per_degree * 80
-home_offset_a2 = steps_per_degree * 76
+home_offset_a2 = steps_per_degree * 78
 
 # default angles after homing
 curr_a1 = 90
