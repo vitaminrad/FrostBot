@@ -11,4 +11,4 @@
 `generate_circle_gcode.py` generates simple gcode to draw a circle
 
 ## Arduino
-robot/robot.ino is responsible for controlling the motors and performing the homing commands.
+`robot/robot.ino` is responsible for controlling the motors and performing the homing commands.
