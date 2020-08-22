@@ -3,8 +3,11 @@
 
 ## Python
 `robot.py` will home and run circle.gcode
+
 `energize.py` allows for stepper driver calibration (simply energizes motors)
+
 `deenergize.py` de energize stepper motors
+
 `generate_circle_gcode.py` generates simple gcode to draw a circle
 
 ## Arduino
