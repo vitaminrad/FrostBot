@@ -27,9 +27,9 @@ interpolate = True
 segment_distance = 1 # maximum distance of a move
 
 # link lengths
-la = 80 # forearms in mm
-lb = 120 # aftarms in mm
-lc = 60 # space between main pivots
+l1 = 80 # forearms in mm
+l2 = 120 # aftarms in mm
+l3 = 60 # space between main pivots
 
 # offset steps after homing
 home_offset_a1 = steps_per_degree * 80
@@ -53,13 +53,16 @@ dest_y = 0
 
 def get_angles(x, y):
 	''' forward kinematics '''
-	E1 = float(-2 * la * x)
-	F1 = float(-2 * la * y)
-	G1 = float(la * la - lb * lb + x * x + y * y)
 
-	E4 = float(2 * la * (-x + lc))
-	F4 = float(-2 * la * y)
-	G4 = float(lc * lc + la * la - lb * lb + x * x + y * y - (2 * lc * x))
+	# angle a1
+	E1 = float(-2 * l1 * x)
+	F1 = float(-2 * l1 * y)
+	G1 = float(l1 * l1 - l2 * l2 + x * x + y * y)
+
+	# angle a4
+	E4 = float(2 * l1 * (-x + l3))
+	F4 = float(-2 * l1 * y)
+	G4 = float(l3 * l3 + l1 * l1 - l2 * l2 + x * x + y * y - (2 * l3 * x))
 
 	try:
 		a1 = 2 * math.atan((-F1 + math.sqrt(E1 * E1 + F1 * F1 - G1 * G1)) / (G1 - E1))
@@ -78,14 +81,14 @@ def get_coords(a1, a4):
 	a1 = math.radians(a1)
 	a4 = math.radians(a4)
 
-	A = 2 * lb * (lc + la * ( math.cos(a4) - math.cos(a1) ))
-	B = 2 * la * lb * (math.sin(a4) - math.sin(a1))
-	C = math.pow(lc, 2) + 2 * (la * la) + 2 * lc * la * math.cos(a4) - 2 * lc * la * math.cos(a1) - 2 * (la * la) * math.cos(a4 - a1)
+	A = 2 * l2 * (l3 + l1 * ( math.cos(a4) - math.cos(a1) ))
+	B = 2 * l1 * l2 * (math.sin(a4) - math.sin(a1))
+	C = math.pow(l3, 2) + 2 * (l1 * l1) + 2 * l3 * l1 * math.cos(a4) - 2 * l3 * l1 * math.cos(a1) - 2 * (l1 * l1) * math.cos(a4 - a1)
 
 	D = 2 * math.atan((-B - math.sqrt((A * A) + (B * B) - (C * C))) / (C - A))
 
-	x = round(lc + la * math.cos(a4) + lb * math.cos(D))
-	y = round(la * math.sin(a4) + lb * math.sin(D))
+	x = round(l3 + l1 * math.cos(a4) + l2 * math.cos(D))
+	y = round(l1 * math.sin(a4) + l2 * math.sin(D))
 
 	return (x, y)
 
