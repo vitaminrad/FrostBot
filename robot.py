@@ -3,7 +3,7 @@ import PyCmdMessenger
 import math
 import time
 
-arduino = PyCmdMessenger.ArduinoBoard('COM3', baud_rate=115200)
+arduino = PyCmdMessenger.ArduinoBoard('COM19', baud_rate=115200)
 
 commands = [['motors', 'ff'],
 			['energize', ''],
@@ -19,7 +19,7 @@ robot = PyCmdMessenger.CmdMessenger(arduino, commands)
 
 # step config
 ms_mode = 32 # microstepping mode
-stepper_deg = 1.8 # degrees per step native to stepper motor
+stepper_deg = 0.9 # degrees per step native to stepper motor
 steps_per_rev = (360 * 32) / stepper_deg # steps per full 360' revolution
 steps_per_degree = ms_mode / stepper_deg # steps per 1' revolution
 
@@ -32,8 +32,8 @@ l2 = 120 # aftarms in mm
 l3 = 60 # space between main pivots
 
 # offset steps after homing
-home_offset_a1 = steps_per_degree * 80
-home_offset_a2 = steps_per_degree * 78
+home_offset_a1 = steps_per_degree * 88
+home_offset_a2 = steps_per_degree * 94
 
 # default angles after homing
 curr_a1 = 90
